@@ -2,223 +2,253 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Strict Diet Accountability Tracker</title>
+<title>Diet Quest</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#b00020">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
 
 <style>
-    :root {
-        --bg: #0b0b0b;
-        --panel: #151515;
-        --red: #b00020;
-        --red-glow: #ff0033;
-        --text: #e0e0e0;
-    }
+:root {
+  --bg: #050505;
+  --card: #121212;
+  --red: #ff2b4f;
+  --green: #00ff9c;
+  --gold: #ffcc00;
+  --text: #eaeaea;
+}
 
-    * {
-        box-sizing: border-box;
-        font-family: Impact, "Arial Black", sans-serif;
-    }
+* {
+  box-sizing: border-box;
+  font-family: "Arial Black", Impact, sans-serif;
+}
 
-    body {
-        margin: 0;
-        background: var(--bg);
-        color: var(--text);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-    }
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #111, #000);
+  color: var(--text);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
 
-    .app {
-        width: 420px;
-        background: var(--panel);
-        padding: 20px;
-        border: 2px solid var(--red);
-        box-shadow: 0 0 20px var(--red);
-    }
+.app {
+  width: 390px;
+  background: linear-gradient(180deg, #121212, #050505);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 0 40px rgba(255, 43, 79, 0.25);
+}
 
-    h1 {
-        text-align: center;
-        margin: 0 0 10px;
-        color: var(--red-glow);
-        letter-spacing: 2px;
-    }
+h1 {
+  text-align: center;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-bottom: 5px;
+}
 
-    .score {
-        text-align: center;
-        font-size: 48px;
-        margin: 10px 0;
-        color: #fff;
-        text-shadow: 0 0 10px var(--red);
-    }
+.subtitle {
+  text-align: center;
+  font-size: 13px;
+  opacity: 0.7;
+  margin-bottom: 12px;
+}
 
-    .timer {
-        text-align: center;
-        font-size: 24px;
-        margin-bottom: 15px;
-        color: #aaa;
-    }
+/* HEALTH BAR */
+.health-container {
+  background: #222;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 20px;
+  margin-bottom: 10px;
+}
 
-    .buttons {
-        display: flex;
-        gap: 10px;
-        margin-bottom: 15px;
-    }
+.health-bar {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, var(--green), #00cc7a);
+  transition: width 0.4s;
+}
 
-    button {
-        flex: 1;
-        padding: 15px;
-        font-size: 16px;
-        cursor: pointer;
-        border: none;
-        color: #fff;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
+/* STATS */
+.stats {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
 
-    .fail {
-        background: var(--red);
-        box-shadow: 0 0 10px var(--red);
-    }
+/* XP */
+.xp-container {
+  background: #222;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 12px;
+  margin-bottom: 14px;
+}
 
-    .clean {
-        background: #222;
-        border: 1px solid #555;
-    }
+.xp-bar {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--gold), #ff9900);
+  transition: width 0.4s;
+}
 
-    .warning {
-        display: none;
-        background: #200;
-        border: 1px solid var(--red);
-        color: #ff4d4d;
-        padding: 10px;
-        margin-bottom: 15px;
-        text-align: center;
-        animation: shake 0.3s;
-    }
+/* BUTTONS */
+.buttons {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 12px;
+}
 
-    @keyframes shake {
-        0% { transform: translateX(0); }
-        25% { transform: translateX(-5px); }
-        50% { transform: translateX(5px); }
-        75% { transform: translateX(-5px); }
-        100% { transform: translateX(0); }
-    }
+button {
+  flex: 1;
+  padding: 14px;
+  border-radius: 12px;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+  color: #fff;
+  transition: transform 0.1s;
+}
 
-    .history {
-        max-height: 200px;
-        overflow-y: auto;
-        border-top: 1px solid #333;
-        padding-top: 10px;
-        font-size: 14px;
-    }
+button:active {
+  transform: scale(0.95);
+}
 
-    .history-entry {
-        margin-bottom: 8px;
-        color: #ff6666;
-    }
+.fail {
+  background: linear-gradient(135deg, var(--red), #8b0012);
+}
 
+.clean {
+  background: linear-gradient(135deg, var(--green), #008b5a);
+}
+
+/* WARNING */
+.warning {
+  min-height: 50px;
+  text-align: center;
+  color: var(--red);
+  font-size: 13px;
+  margin-bottom: 10px;
+}
+
+/* ACHIEVEMENTS */
+.achievements {
+  border-top: 1px solid #222;
+  padding-top: 10px;
+  font-size: 12px;
+}
+
+.achievement {
+  opacity: 0.5;
+  margin-bottom: 4px;
+}
+
+.achievement.unlocked {
+  color: var(--gold);
+  opacity: 1;
+}
 </style>
 </head>
+
 <body>
-
 <div class="app">
-    <h1>HEALTH SCORE</h1>
-    <div class="score" id="score">100</div>
+  <h1>DIET QUEST</h1>
+  <div class="subtitle">Discipline is the game</div>
 
-    <div class="timer">
-        Next report in: <span id="time">60:00</span>
-    </div>
+  <div class="health-container">
+    <div class="health-bar" id="healthBar"></div>
+  </div>
 
-    <div class="buttons">
-        <button class="fail" id="failBtn">I Ate Sugar / Junk</button>
-        <button class="clean" id="cleanBtn">Clean Hour</button>
-    </div>
+  <div class="stats">
+    <div>❤️ Health: <span id="health">100</span></div>
+    <div>🔥 Streak: <span id="streak">0</span></div>
+    <div>⭐ Level: <span id="level">1</span></div>
+  </div>
 
-    <div class="warning" id="warningBox"></div>
+  <div class="xp-container">
+    <div class="xp-bar" id="xpBar"></div>
+  </div>
 
-    <div class="history" id="history"></div>
+  <div class="buttons">
+    <button class="fail" id="failBtn">Ate Junk</button>
+    <button class="clean" id="cleanBtn">Clean Hour</button>
+  </div>
+
+  <div class="warning" id="warning"></div>
+
+  <div class="achievements">
+    <div class="achievement" id="a1">🏆 First Clean Hour</div>
+    <div class="achievement" id="a2">🏆 6 Hour Streak</div>
+    <div class="achievement" id="a3">🏆 24 Hour Discipline</div>
+  </div>
 </div>
 
 <script>
-    const scoreEl = document.getElementById("score");
-    const timeEl = document.getElementById("time");
-    const warningBox = document.getElementById("warningBox");
-    const historyEl = document.getElementById("history");
+let health = Number(localStorage.getItem("health")) || 100;
+let xp = Number(localStorage.getItem("xp")) || 0;
+let level = Number(localStorage.getItem("level")) || 1;
+let streak = Number(localStorage.getItem("streak")) || 0;
 
-    const warnings = [
-        "Look at your reflection. That sugar is turning into fat right now.",
-        "You are choosing to be unhealthy.",
-        "Remember how bad it felt before? You are heading right back there.",
-        "Your hormones are screaming for help and you gave them poison.",
-        "This is how discipline dies.",
-        "Temporary pleasure. Permanent regret."
-    ];
+const healthEl = document.getElementById("health");
+const streakEl = document.getElementById("streak");
+const levelEl = document.getElementById("level");
+const healthBar = document.getElementById("healthBar");
+const xpBar = document.getElementById("xpBar");
+const warningEl = document.getElementById("warning");
 
-    let score = parseInt(localStorage.getItem("healthScore")) || 100;
-    let history = JSON.parse(localStorage.getItem("failHistory")) || [];
-    let seconds = 3600;
+const warnings = [
+  "⚔️ Craving boss defeated you.",
+  "💀 Discipline damage taken.",
+  "You broke the streak.",
+  "The junk won this round."
+];
 
-    function save() {
-        localStorage.setItem("healthScore", score);
-        localStorage.setItem("failHistory", JSON.stringify(history));
-    }
+function save() {
+  localStorage.setItem("health", health);
+  localStorage.setItem("xp", xp);
+  localStorage.setItem("level", level);
+  localStorage.setItem("streak", streak);
+}
 
-    function updateScore() {
-        scoreEl.textContent = score;
-        save();
-    }
+function updateUI() {
+  healthEl.textContent = health;
+  streakEl.textContent = streak;
+  levelEl.textContent = level;
+  healthBar.style.width = health + "%";
+  xpBar.style.width = (xp / 100) * 100 + "%";
 
-    function renderHistory() {
-        historyEl.innerHTML = "";
-        history.forEach(entry => {
-            const div = document.createElement("div");
-            div.className = "history-entry";
-            div.textContent = entry;
-            historyEl.appendChild(div);
-        });
-    }
+  if (xp >= 100) {
+    xp = 0;
+    level++;
+  }
 
-    function showWarning() {
-        const msg = warnings[Math.floor(Math.random() * warnings.length)];
-        warningBox.textContent = msg;
-        warningBox.style.display = "block";
-        setTimeout(() => warningBox.style.display = "none", 4000);
-    }
+  document.getElementById("a1").classList.toggle("unlocked", streak >= 1);
+  document.getElementById("a2").classList.toggle("unlocked", streak >= 6);
+  document.getElementById("a3").classList.toggle("unlocked", streak >= 24);
 
-    document.getElementById("failBtn").onclick = () => {
-        score = Math.max(0, score - 20);
-        const time = new Date().toLocaleTimeString();
-        history.unshift(`[${time}] Ate sugar/junk`);
-        showWarning();
-        updateScore();
-        renderHistory();
-    };
+  save();
+}
 
-    document.getElementById("cleanBtn").onclick = () => {
-        score = Math.min(100, score + 2);
-        updateScore();
-    };
+document.getElementById("failBtn").onclick = () => {
+  health = Math.max(0, health - 20);
+  streak = 0;
+  warningEl.textContent = warnings[Math.floor(Math.random() * warnings.length)];
+  updateUI();
+};
 
-    function tick() {
-        seconds--;
-        if (seconds <= 0) {
-            alert("REPORT NOW: Have you poisoned yourself with sugar?\nAnswer or face the consequences.");
-            seconds = 3600;
-        }
-        const m = Math.floor(seconds / 60);
-        const s = seconds % 60;
-        timeEl.textContent = `${m}:${s.toString().padStart(2, "0")}`;
-    }
+document.getElementById("cleanBtn").onclick = () => {
+  health = Math.min(100, health + 2);
+  xp += 10;
+  streak++;
+  warningEl.textContent = "";
+  updateUI();
+};
 
-    setInterval(tick, 1000);
-
-    updateScore();
-    renderHistory();
+updateUI();
 </script>
-
 </body>
 </html>
