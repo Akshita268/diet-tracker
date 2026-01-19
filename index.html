@@ -1,168 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Diet Quest</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hard Mode Health Tracker</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.7);
+            --danger: #ef4444;
+            --success: #22c55e;
+            --text: #f8fafc;
+        }
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#b00020">
-<meta name="apple-mobile-web-app-capable" content="yes">
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f172a, #1e1b4b);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
 
-<style>
-:root {
-  --bg:#050505; --card:#121212;
-  --red:#ff2b4f; --green:#00ff9c; --gold:#ffcc00; --text:#eaeaea;
-}
-*{box-sizing:border-box;font-family:"Arial Black",Impact,sans-serif}
-body{
-  margin:0;background:radial-gradient(circle at top,#111,#000);
-  color:var(--text);display:flex;justify-content:center;align-items:center;min-height:100vh
-}
-.app{
-  width:390px;background:linear-gradient(180deg,#121212,#050505);
-  border-radius:18px;padding:18px;box-shadow:0 0 40px rgba(255,43,79,.25)
-}
-h1{text-align:center;color:var(--gold);margin-bottom:4px}
-.subtitle{text-align:center;font-size:13px;opacity:.7;margin-bottom:12px}
+        .container {
+            background: var(--card-bg);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 24px;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
 
-/* Bars */
-.bar{background:#222;border-radius:10px;overflow:hidden}
-.health-bar{height:20px;margin-bottom:8px}
-.health-fill{height:100%;background:linear-gradient(90deg,var(--green),#00cc7a);transition:.4s}
-.xp-bar{height:12px;margin-bottom:10px}
-.xp-fill{height:100%;background:linear-gradient(90deg,var(--gold),#ff9900);transition:.4s}
+        h1 { font-size: 1.5rem; margin-bottom: 0.5rem; letter-spacing: 1px; }
 
-.stats{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px}
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin: 2rem 0;
+        }
 
-.timer{text-align:center;font-size:14px;opacity:.8;margin-bottom:10px}
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 16px;
+        }
 
-.buttons{display:flex;gap:10px;margin-bottom:10px}
-button{
-  flex:1;padding:14px;border-radius:12px;border:none;
-  font-size:13px;color:#fff;cursor:pointer
-}
-button:disabled{opacity:.4;cursor:not-allowed}
-.fail{background:linear-gradient(135deg,var(--red),#8b0012)}
-.clean{background:linear-gradient(135deg,var(--green),#008b5a)}
+        .stat-value { font-size: 1.8rem; font-weight: bold; display: block; }
+        .stat-label { font-size: 0.8rem; opacity: 0.7; text-transform: uppercase; }
 
-.warning{text-align:center;color:var(--red);font-size:13px;min-height:40px}
-</style>
+        .scold-area {
+            min-height: 80px;
+            margin-bottom: 2rem;
+            padding: 1rem;
+            border-radius: 12px;
+            font-style: italic;
+            background: rgba(239, 68, 68, 0.1);
+            border-left: 4px solid var(--danger);
+            display: none;
+        }
+
+        .btn-group { display: flex; gap: 10px; }
+
+        button {
+            flex: 1;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        button:active { transform: scale(0.95); }
+
+        .btn-clean { background: var(--success); color: white; }
+        .btn-junk { background: var(--danger); color: white; }
+
+        #history {
+            margin-top: 2rem;
+            text-align: left;
+            font-size: 0.85rem;
+            max-height: 150px;
+            overflow-y: auto;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 1rem;
+        }
+
+        .history-item { color: var(--danger); margin-bottom: 4px; }
+    </style>
 </head>
-
 <body>
-<div class="app">
-  <h1>DIET QUEST</h1>
-  <div class="subtitle">One hour. One choice.</div>
 
-  <div class="bar health-bar"><div class="health-fill" id="healthFill"></div></div>
+<div class="container">
+    <h1>ACCOUNTABILITY LOG</h1>
+    <p id="time-prompt" style="opacity: 0.6; font-size: 0.9rem;">Did you eat in the last hour?</p>
 
-  <div class="stats">
-    <div>❤️ <span id="health">100</span></div>
-    <div>🔥 Streak <span id="streak">0</span></div>
-    <div>⭐ Lvl <span id="level">1</span></div>
-  </div>
+    <div id="scold-box" class="scold-area"></div>
 
-  <div class="bar xp-bar"><div class="xp-fill" id="xpFill"></div></div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span id="score" class="stat-value">1000</span>
+            <span class="stat-label">Health Credits</span>
+        </div>
+        <div class="stat-card">
+            <span id="streak" class="stat-value">0</span>
+            <span class="stat-label">Day Streak</span>
+        </div>
+    </div>
 
-  <div class="timer">
-    Next hour in <span id="time">60:00</span>
-  </div>
+    <div class="btn-group">
+        <button class="btn-clean" onclick="logAction(false)">I STAYED CLEAN</button>
+        <button class="btn-junk" onclick="logAction(true)">I ATE JUNK</button>
+    </div>
 
-  <div class="buttons">
-    <button class="fail" id="failBtn">Ate Junk</button>
-    <button class="clean" id="cleanBtn">Clean Hour</button>
-  </div>
-
-  <div class="warning" id="warning"></div>
+    <div id="history">
+        <strong>Failure Log:</strong>
+        <div id="log-list"></div>
+    </div>
 </div>
 
 <script>
-/* === STATE === */
-let health = +localStorage.getItem("health") || 100;
-let xp = +localStorage.getItem("xp") || 0;
-let level = +localStorage.getItem("level") || 1;
-let streak = +localStorage.getItem("streak") || 0;
-let cleanHours = +localStorage.getItem("cleanHours") || 0;
-let hourDone = localStorage.getItem("hourDone") === "true";
-let seconds = +localStorage.getItem("seconds") || 3600;
+    const scoldMessages = [
+        "So you value a sugar rush over your hormonal balance? Pathetic.",
+        "Your past health issues clearly weren't enough of a lesson for you.",
+        "Disappointing. You just reset all your progress for a snack.",
+        "Enjoy the brain fog and inflammation. Was it worth it?",
+        "Weak. Every time you eat that, you betray your future self.",
+        "You're literally paying companies to ruin your health. Think about that.",
+        "Another failure logged. Your streak is gone, just like your discipline."
+    ];
 
-/* === ELEMENTS === */
-const healthEl = document.getElementById("health");
-const streakEl = document.getElementById("streak");
-const levelEl = document.getElementById("level");
-const healthFill = document.getElementById("healthFill");
-const xpFill = document.getElementById("xpFill");
-const timeEl = document.getElementById("time");
-const cleanBtn = document.getElementById("cleanBtn");
-const warningEl = document.getElementById("warning");
+    let data = JSON.parse(localStorage.getItem('healthTracker')) || {
+        score: 1000,
+        streak: 0,
+        failures: [],
+        lastCheckIn: Date.now()
+    };
 
-/* === FUNCTIONS === */
-function save(){
-  localStorage.setItem("health",health);
-  localStorage.setItem("xp",xp);
-  localStorage.setItem("level",level);
-  localStorage.setItem("streak",streak);
-  localStorage.setItem("cleanHours",cleanHours);
-  localStorage.setItem("hourDone",hourDone);
-  localStorage.setItem("seconds",seconds);
-}
+    function updateUI() {
+        document.getElementById('score').innerText = data.score;
+        document.getElementById('streak').innerText = data.streak;
+        
+        const logList = document.getElementById('log-list');
+        logList.innerHTML = data.failures.map(f => `<div class="history-item">✘ ${f}</div>`).join('');
+        
+        localStorage.setItem('healthTracker', JSON.stringify(data));
+    }
 
-function updateUI(){
-  healthEl.textContent = health;
-  streakEl.textContent = streak;
-  levelEl.textContent = level;
-  healthFill.style.width = health+"%";
-  xpFill.style.width = (xp%100)+"%";
-  cleanBtn.disabled = hourDone;
-  cleanBtn.textContent = hourDone ? "✔ Hour Completed" : "Clean Hour";
-  save();
-}
+    function logAction(isJunk) {
+        const scoldBox = document.getElementById('scold-box');
+        
+        if (isJunk) {
+            data.score -= 200;
+            data.streak = 0;
+            const msg = scoldMessages[Math.floor(Math.random() * scoldMessages.length)];
+            scoldBox.innerText = msg;
+            scoldBox.style.display = 'block';
+            
+            const timestamp = new Date().toLocaleString();
+            data.failures.unshift(timestamp);
+            if(data.failures.length > 5) data.failures.pop(); // Keep only last 5
+        } else {
+            data.score += 10;
+            scoldBox.style.display = 'none';
+            // Logic: Increment streak if 24 hours passed since last reset (simplified)
+            // For now, we'll keep it simple: every "Clean" check adds small points
+        }
+        
+        updateUI();
+    }
 
-/* === BUTTON LOGIC === */
-document.getElementById("cleanBtn").onclick = ()=>{
-  if(hourDone){
-    warningEl.textContent = "⏳ You already claimed this hour.";
-    return;
-  }
-  hourDone = true;
-  cleanHours++;
-  xp += 10;
-  health = Math.min(100, health + 2);
-  warningEl.textContent = "✔ Hour survived.";
-
-  if(cleanHours % 6 === 0){
-    streak++;
-  }
-  if(xp >= 100){
-    xp = 0; level++;
-  }
-  updateUI();
-};
-
-document.getElementById("failBtn").onclick = ()=>{
-  health = Math.max(0, health - 20);
-  streak = 0;
-  cleanHours = 0;
-  warningEl.textContent = "💀 Junk reset your progress.";
-  updateUI();
-};
-
-/* === TIMER === */
-setInterval(()=>{
-  seconds--;
-  if(seconds<=0){
-    seconds = 3600;
-    hourDone = false;
-    alert("⏱ New hour. Report now.");
-  }
-  let m = Math.floor(seconds/60);
-  let s = seconds%60;
-  timeEl.textContent = `${m}:${s.toString().padStart(2,"0")}`;
-  save();
-},1000);
-
-updateUI();
+    // Check for streak logic on load
+    updateUI();
 </script>
+
 </body>
 </html>
