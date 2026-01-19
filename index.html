@@ -1,207 +1,241 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Health Discipline Tracker</title>
-    <style>
-        :root {
-            --bg: #020617;
-            --card: #1e293b;
-            --danger: #dc2626;
-            --success: #16a34a;
-            --gold: #fbbf24;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Health Discipline Tracker</title>
 
-        body {
-            background-color: var(--bg);
-            color: white;
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            justify-content: center;
-            padding-top: 50px;
-            margin: 0;
-        }
+<style>
+:root {
+  --bg: #020617;
+  --card: #1e293b;
+  --danger: #dc2626;
+  --success: #16a34a;
+  --gold: #fbbf24;
+}
 
-        .app-container {
-            width: 380px;
-            background: var(--card);
-            padding: 2rem;
-            border-radius: 20px;
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            text-align: center;
-            border: 1px solid #334155;
-        }
+body {
+  background-color: var(--bg);
+  color: white;
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  justify-content: center;
+  padding-top: 50px;
+  margin: 0;
+}
 
-        .status-badge {
-            background: rgba(220, 38, 38, 0.1);
-            color: var(--danger);
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            display: inline-block;
-            margin-bottom: 1rem;
-        }
+.app-container {
+  width: 380px;
+  background: var(--card);
+  padding: 2rem;
+  border-radius: 20px;
+  box-shadow: 0 0 30px rgba(0,0,0,0.5);
+  text-align: center;
+  border: 1px solid #334155;
+}
 
-        .big-stat { font-size: 3rem; font-weight: 800; margin: 0; }
-        .label { color: #94a3b8; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 1px; }
+.status-badge {
+  background: rgba(220, 38, 38, 0.1);
+  color: var(--danger);
+  padding: 5px 15px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  display: inline-block;
+  margin-bottom: 1rem;
+}
 
-        .scold-text {
-            color: var(--danger);
-            font-style: italic;
-            margin: 20px 0;
-            min-height: 50px;
-            font-size: 0.9rem;
-        }
+.big-stat {
+  font-size: 3rem;
+  font-weight: 800;
+  margin: 0;
+}
 
-        .btn-box {
-            display: grid;
-            gap: 15px;
-            margin-top: 20px;
-        }
+.label {
+  color: #94a3b8;
+  text-transform: uppercase;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+}
 
-        button {
-            padding: 15px;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
+.scold-text {
+  color: var(--danger);
+  font-style: italic;
+  margin: 20px 0;
+  min-height: 50px;
+  font-size: 0.9rem;
+}
 
-        button:disabled {
-            background: #475569 !important;
-            cursor: not-allowed;
-            opacity: 0.5;
-        }
+.btn-box {
+  display: grid;
+  gap: 15px;
+  margin-top: 20px;
+}
 
-        .btn-junk { background: var(--danger); color: white; }
-        .btn-clean { background: var(--success); color: white; }
+button {
+  padding: 15px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
 
-        #timer-display {
-            margin-top: 15px;
-            font-size: 0.8rem;
-            color: var(--gold);
-        }
-    </style>
+button:disabled {
+  background: #475569 !important;
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.btn-junk {
+  background: var(--danger);
+  color: white;
+}
+
+.btn-clean {
+  background: var(--success);
+  color: white;
+}
+
+#timer-display {
+  margin-top: 15px;
+  font-size: 0.8rem;
+  color: var(--gold);
+}
+</style>
 </head>
+
 <body>
 
 <div class="app-container">
-    <div class="status-badge">STRICT MODE ACTIVE</div>
-    
-    <div class="label">Current Score</div>
-    <div id="score" class="big-stat">1000</div>
-    
-    <div style="margin-top: 20px;">
-        <div class="label">6-Hour Blocks Completed</div>
-        <div id="streak" style="font-size: 1.5rem; color: var(--gold);">0</div>
-    </div>
+  <div class="status-badge">STRICT MODE ACTIVE</div>
 
-    <p id="scold-msg" class="scold-text">Waiting for check-in...</p>
+  <div class="label">Current Score</div>
+  <div id="score" class="big-stat">1000</div>
 
-    <div class="btn-box">
-        <button id="clean-btn" class="btn-clean" onclick="handleLog(false)">I STAYED CLEAN</button>
-        <button id="junk-btn" class="btn-junk" onclick="handleLog(true)">I ATE JUNK/SUGAR</button>
-    </div>
+  <div style="margin-top: 20px;">
+    <div class="label">6-Hour Blocks Completed</div>
+    <div id="streak" style="font-size: 1.5rem; color: var(--gold);">0</div>
+  </div>
 
-    <p id="timer-display"></p>
-    <button onclick="requestNotifs()" style="background: transparent; color: #94a3b8; font-size: 0.7rem; text-decoration: underline;">Enable Reminders</button>
+  <p id="scold-msg" class="scold-text">Waiting for check-in…</p>
+
+  <div class="btn-box">
+    <button id="clean-btn" class="btn-clean">I STAYED CLEAN</button>
+    <button id="junk-btn" class="btn-junk">I ATE JUNK / SUGAR</button>
+  </div>
+
+  <p id="timer-display"></p>
+
+  <button onclick="requestNotifs()"
+    style="background: transparent; color:#94a3b8; font-size:0.7rem; text-decoration:underline;">
+    Enable Reminders
+  </button>
 </div>
 
 <script>
-    const STORAGE_KEY = 'hardModeData';
-    const SCOLDS = [
-        "Your hormones are begging for discipline, yet you choose sugar?",
-        "One step forward, ten steps back. Pathetic.",
-        "You're literally poisoning your recovery for a 2-minute taste.",
-        "Disappointing. Hope the sugar was worth the health damage."
-    ];
+/* ===================== CONSTANTS ===================== */
+const STORAGE_KEY = 'hardModeData';
+const ONE_HOUR = 60 * 60 * 1000;
 
-    let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
-        score: 1000,
-        streak: 0,
-        lastLogTime: 0,
-        cleanHoursTotal: 0
-    };
+const SCOLDS = [
+  "Your hormones are begging for discipline, yet you choose sugar?",
+  "One step forward, ten steps back. Pathetic.",
+  "You're literally poisoning your recovery for a 2-minute taste.",
+  "Disappointing. Hope the sugar was worth the health damage."
+];
 
-    function requestNotifs() {
-        Notification.requestPermission();
+/* ===================== STATE ===================== */
+let state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || {
+  score: 1000,
+  streak: 0,
+  cleanHoursTotal: 0,
+  lastLogTime: 0,
+  notified: false
+};
+
+/* ===================== ELEMENTS ===================== */
+const scoreEl = document.getElementById('score');
+const streakEl = document.getElementById('streak');
+const scoldEl = document.getElementById('scold-msg');
+const timerEl = document.getElementById('timer-display');
+const cleanBtn = document.getElementById('clean-btn');
+const junkBtn = document.getElementById('junk-btn');
+
+/* ===================== HELPERS ===================== */
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function requestNotifs() {
+  Notification.requestPermission();
+}
+
+/* ===================== UI UPDATE ===================== */
+function updateUI() {
+  scoreEl.innerText = state.score;
+  streakEl.innerText = state.streak;
+
+  const now = Date.now();
+  const elapsed = now - state.lastLogTime;
+
+  if (state.lastLogTime === 0 || elapsed >= ONE_HOUR) {
+    cleanBtn.disabled = false;
+    junkBtn.disabled = false;
+    timerEl.innerText = "⏱ Check-in required now";
+
+    if (!state.notified && Notification.permission === "granted") {
+      new Notification("CHECK IN NOW", {
+        body: "Did you stay clean this hour?"
+      });
+      state.notified = true;
+      save();
     }
+  } else {
+    cleanBtn.disabled = true;
+    junkBtn.disabled = true;
 
-    function updateUI() {
-        document.getElementById('score').innerText = state.score;
-        document.getElementById('streak').innerText = state.streak;
-        
-        const now = Date.now();
-        const diff = now - state.lastLogTime;
-        const oneHour = 60 * 60 * 1000;
+    const remaining = ONE_HOUR - elapsed;
+    const mins = Math.floor(remaining / 60000);
+    const secs = Math.floor((remaining % 60000) / 1000);
+    timerEl.innerText = `Next check-in in ${mins}m ${secs}s`;
+  }
+}
 
-        if (diff < oneHour) {
-            document.getElementById('clean-btn').disabled = true;
-            document.getElementById('junk-btn').disabled = true;
-            startCountdown(oneHour - diff);
-        } else {
-            document.getElementById('clean-btn').disabled = false;
-            document.getElementById('junk-btn').disabled = false;
-            document.getElementById('timer-display').innerText = "Awaiting Check-in...";
-            sendReminder();
-        }
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
+/* ===================== ACTION HANDLERS ===================== */
+cleanBtn.onclick = () => {
+  state.lastLogTime = Date.now();
+  state.notified = false;
 
-    function startCountdown(ms) {
-        const timer = document.getElementById('timer-display');
-        const interval = setInterval(() => {
-            const remaining = ms - 1000;
-            ms = remaining;
-            if (ms <= 0) {
-                clearInterval(interval);
-                updateUI();
-            } else {
-                const mins = Math.floor(ms / 60000);
-                const secs = Math.floor((ms % 60000) / 1000);
-                timer.innerText = `Next check-in available in: ${mins}m ${secs}s`;
-            }
-        }, 1000);
-    }
+  state.score += 10;
+  state.cleanHoursTotal += 1;
+  scoldEl.innerText = "Good. Discipline maintained.";
 
-    function handleLog(isJunk) {
-        state.lastLogTime = Date.now();
-        
-        if (isJunk) {
-            state.score -= 200;
-            state.streak = 0;
-            state.cleanHoursTotal = 0;
-            document.getElementById('scold-msg').innerText = SCOLDS[Math.floor(Math.random() * SCOLDS.length)];
-        } else {
-            state.score += 10;
-            state.cleanHoursTotal += 1;
-            document.getElementById('scold-msg').innerText = "Good. Stay disciplined.";
-            
-            // Check for 6-hour streak increment
-            if (state.cleanHoursTotal >= 6) {
-                state.streak += 1;
-                state.cleanHoursTotal = 0;
-            }
-        }
-        updateUI();
-    }
+  if (state.cleanHoursTotal === 6) {
+    state.streak += 1;
+    state.cleanHoursTotal = 0;
+  }
 
-    function sendReminder() {
-        if (Notification.permission === "granted") {
-            new Notification("CHECK IN NOW", {
-                body: "Stop hiding. Did you eat junk or not?",
-                icon: "https://cdn-icons-png.flaticon.com/512/182/182318.png"
-            });
-        }
-    }
+  save();
+  updateUI();
+};
 
-    // Auto-check on load
-    updateUI();
-    // Run a check every minute to refresh the UI/Buttons
-    setInterval(updateUI, 60000);
+junkBtn.onclick = () => {
+  state.lastLogTime = Date.now();
+  state.notified = false;
+
+  state.score -= 200;
+  state.streak = 0;
+  state.cleanHoursTotal = 0;
+  scoldEl.innerText = SCOLDS[Math.floor(Math.random() * SCOLDS.length)];
+
+  save();
+  updateUI();
+};
+
+/* ===================== LOOP ===================== */
+setInterval(updateUI, 1000);
+updateUI();
 </script>
 
 </body>
