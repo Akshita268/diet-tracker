@@ -11,166 +11,62 @@
 
 <style>
 :root {
-  --bg: #050505;
-  --card: #121212;
-  --red: #ff2b4f;
-  --green: #00ff9c;
-  --gold: #ffcc00;
-  --text: #eaeaea;
+  --bg:#050505; --card:#121212;
+  --red:#ff2b4f; --green:#00ff9c; --gold:#ffcc00; --text:#eaeaea;
 }
+*{box-sizing:border-box;font-family:"Arial Black",Impact,sans-serif}
+body{
+  margin:0;background:radial-gradient(circle at top,#111,#000);
+  color:var(--text);display:flex;justify-content:center;align-items:center;min-height:100vh
+}
+.app{
+  width:390px;background:linear-gradient(180deg,#121212,#050505);
+  border-radius:18px;padding:18px;box-shadow:0 0 40px rgba(255,43,79,.25)
+}
+h1{text-align:center;color:var(--gold);margin-bottom:4px}
+.subtitle{text-align:center;font-size:13px;opacity:.7;margin-bottom:12px}
 
-* {
-  box-sizing: border-box;
-  font-family: "Arial Black", Impact, sans-serif;
-}
+/* Bars */
+.bar{background:#222;border-radius:10px;overflow:hidden}
+.health-bar{height:20px;margin-bottom:8px}
+.health-fill{height:100%;background:linear-gradient(90deg,var(--green),#00cc7a);transition:.4s}
+.xp-bar{height:12px;margin-bottom:10px}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--gold),#ff9900);transition:.4s}
 
-body {
-  margin: 0;
-  background: radial-gradient(circle at top, #111, #000);
-  color: var(--text);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-}
+.stats{display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px}
 
-.app {
-  width: 390px;
-  background: linear-gradient(180deg, #121212, #050505);
-  border-radius: 18px;
-  padding: 18px;
-  box-shadow: 0 0 40px rgba(255, 43, 79, 0.25);
-}
+.timer{text-align:center;font-size:14px;opacity:.8;margin-bottom:10px}
 
-h1 {
-  text-align: center;
-  color: var(--gold);
-  letter-spacing: 2px;
-  margin-bottom: 5px;
+.buttons{display:flex;gap:10px;margin-bottom:10px}
+button{
+  flex:1;padding:14px;border-radius:12px;border:none;
+  font-size:13px;color:#fff;cursor:pointer
 }
+button:disabled{opacity:.4;cursor:not-allowed}
+.fail{background:linear-gradient(135deg,var(--red),#8b0012)}
+.clean{background:linear-gradient(135deg,var(--green),#008b5a)}
 
-.subtitle {
-  text-align: center;
-  font-size: 13px;
-  opacity: 0.7;
-  margin-bottom: 12px;
-}
-
-/* HEALTH BAR */
-.health-container {
-  background: #222;
-  border-radius: 10px;
-  overflow: hidden;
-  height: 20px;
-  margin-bottom: 10px;
-}
-
-.health-bar {
-  height: 100%;
-  width: 100%;
-  background: linear-gradient(90deg, var(--green), #00cc7a);
-  transition: width 0.4s;
-}
-
-/* STATS */
-.stats {
-  display: flex;
-  justify-content: space-between;
-  font-size: 13px;
-  margin-bottom: 12px;
-}
-
-/* XP */
-.xp-container {
-  background: #222;
-  border-radius: 10px;
-  overflow: hidden;
-  height: 12px;
-  margin-bottom: 14px;
-}
-
-.xp-bar {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, var(--gold), #ff9900);
-  transition: width 0.4s;
-}
-
-/* BUTTONS */
-.buttons {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-button {
-  flex: 1;
-  padding: 14px;
-  border-radius: 12px;
-  border: none;
-  font-size: 13px;
-  cursor: pointer;
-  color: #fff;
-  transition: transform 0.1s;
-}
-
-button:active {
-  transform: scale(0.95);
-}
-
-.fail {
-  background: linear-gradient(135deg, var(--red), #8b0012);
-}
-
-.clean {
-  background: linear-gradient(135deg, var(--green), #008b5a);
-}
-
-/* WARNING */
-.warning {
-  min-height: 50px;
-  text-align: center;
-  color: var(--red);
-  font-size: 13px;
-  margin-bottom: 10px;
-}
-
-/* ACHIEVEMENTS */
-.achievements {
-  border-top: 1px solid #222;
-  padding-top: 10px;
-  font-size: 12px;
-}
-
-.achievement {
-  opacity: 0.5;
-  margin-bottom: 4px;
-}
-
-.achievement.unlocked {
-  color: var(--gold);
-  opacity: 1;
-}
+.warning{text-align:center;color:var(--red);font-size:13px;min-height:40px}
 </style>
 </head>
 
 <body>
 <div class="app">
   <h1>DIET QUEST</h1>
-  <div class="subtitle">Discipline is the game</div>
+  <div class="subtitle">One hour. One choice.</div>
 
-  <div class="health-container">
-    <div class="health-bar" id="healthBar"></div>
-  </div>
+  <div class="bar health-bar"><div class="health-fill" id="healthFill"></div></div>
 
   <div class="stats">
-    <div>❤️ Health: <span id="health">100</span></div>
-    <div>🔥 Streak: <span id="streak">0</span></div>
-    <div>⭐ Level: <span id="level">1</span></div>
+    <div>❤️ <span id="health">100</span></div>
+    <div>🔥 Streak <span id="streak">0</span></div>
+    <div>⭐ Lvl <span id="level">1</span></div>
   </div>
 
-  <div class="xp-container">
-    <div class="xp-bar" id="xpBar"></div>
+  <div class="bar xp-bar"><div class="xp-fill" id="xpFill"></div></div>
+
+  <div class="timer">
+    Next hour in <span id="time">60:00</span>
   </div>
 
   <div class="buttons">
@@ -179,74 +75,92 @@ button:active {
   </div>
 
   <div class="warning" id="warning"></div>
-
-  <div class="achievements">
-    <div class="achievement" id="a1">🏆 First Clean Hour</div>
-    <div class="achievement" id="a2">🏆 6 Hour Streak</div>
-    <div class="achievement" id="a3">🏆 24 Hour Discipline</div>
-  </div>
 </div>
 
 <script>
-let health = Number(localStorage.getItem("health")) || 100;
-let xp = Number(localStorage.getItem("xp")) || 0;
-let level = Number(localStorage.getItem("level")) || 1;
-let streak = Number(localStorage.getItem("streak")) || 0;
+/* === STATE === */
+let health = +localStorage.getItem("health") || 100;
+let xp = +localStorage.getItem("xp") || 0;
+let level = +localStorage.getItem("level") || 1;
+let streak = +localStorage.getItem("streak") || 0;
+let cleanHours = +localStorage.getItem("cleanHours") || 0;
+let hourDone = localStorage.getItem("hourDone") === "true";
+let seconds = +localStorage.getItem("seconds") || 3600;
 
+/* === ELEMENTS === */
 const healthEl = document.getElementById("health");
 const streakEl = document.getElementById("streak");
 const levelEl = document.getElementById("level");
-const healthBar = document.getElementById("healthBar");
-const xpBar = document.getElementById("xpBar");
+const healthFill = document.getElementById("healthFill");
+const xpFill = document.getElementById("xpFill");
+const timeEl = document.getElementById("time");
+const cleanBtn = document.getElementById("cleanBtn");
 const warningEl = document.getElementById("warning");
 
-const warnings = [
-  "⚔️ Craving boss defeated you.",
-  "💀 Discipline damage taken.",
-  "You broke the streak.",
-  "The junk won this round."
-];
-
-function save() {
-  localStorage.setItem("health", health);
-  localStorage.setItem("xp", xp);
-  localStorage.setItem("level", level);
-  localStorage.setItem("streak", streak);
+/* === FUNCTIONS === */
+function save(){
+  localStorage.setItem("health",health);
+  localStorage.setItem("xp",xp);
+  localStorage.setItem("level",level);
+  localStorage.setItem("streak",streak);
+  localStorage.setItem("cleanHours",cleanHours);
+  localStorage.setItem("hourDone",hourDone);
+  localStorage.setItem("seconds",seconds);
 }
 
-function updateUI() {
+function updateUI(){
   healthEl.textContent = health;
   streakEl.textContent = streak;
   levelEl.textContent = level;
-  healthBar.style.width = health + "%";
-  xpBar.style.width = (xp / 100) * 100 + "%";
-
-  if (xp >= 100) {
-    xp = 0;
-    level++;
-  }
-
-  document.getElementById("a1").classList.toggle("unlocked", streak >= 1);
-  document.getElementById("a2").classList.toggle("unlocked", streak >= 6);
-  document.getElementById("a3").classList.toggle("unlocked", streak >= 24);
-
+  healthFill.style.width = health+"%";
+  xpFill.style.width = (xp%100)+"%";
+  cleanBtn.disabled = hourDone;
+  cleanBtn.textContent = hourDone ? "✔ Hour Completed" : "Clean Hour";
   save();
 }
 
-document.getElementById("failBtn").onclick = () => {
-  health = Math.max(0, health - 20);
-  streak = 0;
-  warningEl.textContent = warnings[Math.floor(Math.random() * warnings.length)];
+/* === BUTTON LOGIC === */
+document.getElementById("cleanBtn").onclick = ()=>{
+  if(hourDone){
+    warningEl.textContent = "⏳ You already claimed this hour.";
+    return;
+  }
+  hourDone = true;
+  cleanHours++;
+  xp += 10;
+  health = Math.min(100, health + 2);
+  warningEl.textContent = "✔ Hour survived.";
+
+  if(cleanHours % 6 === 0){
+    streak++;
+  }
+  if(xp >= 100){
+    xp = 0; level++;
+  }
   updateUI();
 };
 
-document.getElementById("cleanBtn").onclick = () => {
-  health = Math.min(100, health + 2);
-  xp += 10;
-  streak++;
-  warningEl.textContent = "";
+document.getElementById("failBtn").onclick = ()=>{
+  health = Math.max(0, health - 20);
+  streak = 0;
+  cleanHours = 0;
+  warningEl.textContent = "💀 Junk reset your progress.";
   updateUI();
 };
+
+/* === TIMER === */
+setInterval(()=>{
+  seconds--;
+  if(seconds<=0){
+    seconds = 3600;
+    hourDone = false;
+    alert("⏱ New hour. Report now.");
+  }
+  let m = Math.floor(seconds/60);
+  let s = seconds%60;
+  timeEl.textContent = `${m}:${s.toString().padStart(2,"0")}`;
+  save();
+},1000);
 
 updateUI();
 </script>
