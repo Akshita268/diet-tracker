@@ -3,22 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Discipline Arena</title>
+<title>Discipline Ledger</title>
 
 <link rel="manifest" href="manifest.json">
-
-<!-- iOS ICON SUPPORT -->
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
 
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="theme-color" content="#020617">
 
 <style>
 :root{
   --bg:#020617;--card:#0f172a;
-  --red:#dc2626;--green:#16a34a;--gold:#fbbf24;
+  --green:#16a34a;--red:#dc2626;--gold:#fbbf24;
 }
 *{box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
 body{
@@ -26,141 +23,132 @@ body{
   color:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh
 }
 .app{
-  width:380px;background:var(--card);border-radius:22px;
-  padding:22px;border:1px solid #334155;
-  box-shadow:0 0 50px rgba(0,0,0,.6);
-  position:relative;overflow:hidden
+  width:380px;background:var(--card);
+  border-radius:22px;padding:20px;
+  border:1px solid #334155;
 }
-.app.boss{box-shadow:0 0 50px rgba(251,191,36,.7)}
-.badge{
-  text-align:center;font-size:11px;
-  font-weight:800;letter-spacing:1px;
-  padding:6px;border-radius:999px;
-  background:#020617;border:1px solid #334155;
-  margin-bottom:8px
-}
-h1{text-align:center;margin:8px 0;color:var(--gold)}
-
-.stats{
-  display:flex;justify-content:space-between;
-  font-size:12px;margin-bottom:8px
-}
-.bar{background:#020617;border-radius:10px;overflow:hidden;margin:8px 0}
-.fill{height:12px;transition:.4s}
-
-.health{background:linear-gradient(90deg,var(--green),#22c55e)}
-.pressure{background:linear-gradient(90deg,var(--red),#991b1b)}
-
-.state{
-  text-align:center;font-weight:800;
-  margin:12px 0;font-size:13px
-}
-
+h1{text-align:center;color:var(--gold);margin:8px 0}
+.stats{text-align:center;margin-bottom:10px;font-size:13px}
 button{
-  width:100%;padding:15px;
-  border-radius:14px;border:none;
-  font-weight:800;cursor:pointer
+  width:100%;padding:14px;
+  border-radius:12px;border:none;
+  font-weight:800;margin-bottom:10px;cursor:pointer
 }
-.clean{background:var(--green);margin-bottom:10px}
+.clean{background:var(--green)}
 .junk{background:var(--red)}
-button:disabled{opacity:.4}
-
+.secondary{
+  background:#020617;color:#94a3b8;
+  border:1px solid #334155
+}
 .msg{
-  min-height:44px;text-align:center;
-  font-style:italic;color:var(--red);
-  margin-top:10px;font-size:13px
+  min-height:50px;text-align:center;
+  font-style:italic;margin:10px 0
 }
-.quest{
-  margin-top:14px;padding:10px;
-  background:#020617;border-radius:10px;
-  font-size:12px;border:1px dashed #334155
+.hidden{display:none}
+
+/* Junk choices */
+.levels button{margin-bottom:8px}
+
+/* Calendar */
+.calendar{
+  display:grid;grid-template-columns:repeat(7,1fr);
+  gap:6px;margin-top:10px;font-size:11px
 }
+.day{
+  padding:8px 0;text-align:center;
+  border-radius:6px;background:#020617;
+  border:1px solid #334155
+}
+.day.clean{background:rgba(22,163,74,.7)}
+.day.junk{background:rgba(220,38,38,.7)}
 </style>
 </head>
 
 <body>
-<div class="app" id="app">
-  <div class="badge" id="rank">RANK: WEAKLING</div>
-  <h1>DISCIPLINE ARENA</h1>
+<div class="app">
+  <h1>DISCIPLINE LEDGER</h1>
 
   <div class="stats">
-    <div>Score <b id="score">1000</b></div>
-    <div>Streak <b id="streak">0</b></div>
+    Daily check-in • Be honest
   </div>
 
-  <div class="bar"><div class="fill health" id="health"></div></div>
-  <div class="bar"><div class="fill pressure" id="pressure"></div></div>
+  <button class="clean" id="cleanBtn">✔ I STAYED CLEAN TODAY</button>
+  <button class="junk" id="junkBtn">✖ I ATE JUNK TODAY</button>
 
-  <div class="state" id="stateText">WAITING…</div>
-
-  <button class="clean" id="cleanBtn">✔ STAYED CLEAN</button>
-  <button class="junk" id="junkBtn">✖ ATE JUNK</button>
-
-  <div class="msg" id="msg"></div>
-
-  <div class="quest" id="quest">
-    🎯 Quest: Survive 3 clean hours
+  <div id="levels" class="levels hidden">
+    <button class="junk" onclick="logJunk('low')">Low junk (skip 1 meal)</button>
+    <button class="junk" onclick="logJunk('medium')">Medium junk (skip 2 meals)</button>
+    <button class="junk" onclick="logJunk('high')">High junk (skip 3 meals + exercise)</button>
   </div>
+
+  <div class="msg" id="msg">No report yet today.</div>
+
+  <button class="secondary" onclick="toggleCalendar()">📅 View Calendar</button>
+
+  <div id="calendar" class="calendar hidden"></div>
 </div>
 
 <script>
-const HOUR=3600000,KEY="arena";
-const RANKS=["WEAKLING","DISCIPLINED","IRON WILL","RELENTLESS"];
+const KEY="disciplineLedger";
+let data = JSON.parse(localStorage.getItem(KEY)) || {};
 
-let s=JSON.parse(localStorage.getItem(KEY))||{
- score:1000,streak:0,clean:0,pressure:0,last:0
-};
+const today = new Date().toISOString().slice(0,10);
 
-const $=i=>document.getElementById(i);
-const app=$("app");
-
-function rank(){
- if(s.streak>=12)return RANKS[3];
- if(s.streak>=6)return RANKS[2];
- if(s.streak>=3)return RANKS[1];
- return RANKS[0];
+function save(){
+  localStorage.setItem(KEY,JSON.stringify(data));
 }
 
-function ui(){
- $("score").textContent=s.score;
- $("streak").textContent=s.streak;
- $("rank").textContent="RANK: "+rank();
- $("health").style.width=Math.min(100,s.score/10)+"%";
- $("pressure").style.width=Math.min(100,s.pressure*10)+"%";
-
- const d=Date.now()-s.last;
- const boss=s.clean>0 && s.clean%6===0;
-
- app.classList.toggle("boss",boss);
- $("stateText").textContent=boss?"⚔️ BOSS HOUR":"⏱ CHECK-IN";
-
- $("cleanBtn").disabled=d<HOUR;
- $("junkBtn").disabled=d<HOUR;
-
- localStorage.setItem(KEY,JSON.stringify(s));
+function cleanToday(){
+  data[today]={status:"clean"};
+  document.getElementById("msg").textContent="Good. Discipline recorded.";
+  save();renderCalendar();
 }
 
-$("cleanBtn").onclick=()=>{
- s.last=Date.now();s.score+=10;s.clean++;
- s.pressure=Math.max(0,s.pressure-1);
- $("msg").textContent="You resisted.";
- if(s.clean%6===0){s.streak++;s.score+=100}
- ui();
-};
+function showJunkLevels(){
+  document.getElementById("levels").classList.remove("hidden");
+}
 
-$("junkBtn").onclick=()=>{
- s.last=Date.now();s.score-=200;s.clean=0;
- s.streak=0;s.pressure+=2;
- $("msg").textContent="You folded under pressure.";
- ui();
-};
+function logJunk(level){
+  data[today]={status:"junk",level};
+  const consequences={
+    low:"Skip 1 meal tomorrow.",
+    medium:"Skip 2 meals tomorrow.",
+    high:"Skip 3 meals + extra exercise."
+  };
+  document.getElementById("msg").textContent=
+    `Junk recorded. Consequence: ${consequences[level]}`;
+  document.getElementById("levels").classList.add("hidden");
+  save();renderCalendar();
+}
 
-setInterval(()=>{
- if(Date.now()-s.last>HOUR)s.pressure++;
- ui();
-},1000);
+function toggleCalendar(){
+  document.getElementById("calendar").classList.toggle("hidden");
+  renderCalendar();
+}
 
-ui();
+function renderCalendar(){
+  const cal=document.getElementById("calendar");
+  cal.innerHTML="";
+  const now=new Date();
+  const year=now.getFullYear();
+  const month=now.getMonth();
+  const days=new Date(year,month+1,0).getDate();
+
+  for(let d=1;d<=days;d++){
+    const date=new Date(year,month,d).toISOString().slice(0,10);
+    const div=document.createElement("div");
+    div.className="day";
+    div.textContent=d;
+    if(data[date]?.status==="clean")div.classList.add("clean");
+    if(data[date]?.status==="junk")div.classList.add("junk");
+    cal.appendChild(div);
+  }
+}
+
+document.getElementById("cleanBtn").onclick=cleanToday;
+document.getElementById("junkBtn").onclick=showJunkLevels;
+
+renderCalendar();
 </script>
 </body>
 </html>
