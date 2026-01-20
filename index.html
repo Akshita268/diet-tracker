@@ -97,32 +97,41 @@ button{
 </div>
 
 <script>
-const KEY="disciplineData";
-let data=JSON.parse(localStorage.getItem(KEY))||{};
-let current=new Date();
-let touchX=0;
+const KEY = "disciplineData";
+let data = JSON.parse(localStorage.getItem(KEY)) || {};
+let current = new Date();
+let touchX = 0;
 
-const today=()=>new Date().toISOString().slice(0,10);
+/* ✅ LOCAL DATE KEY (FIX) */
+function localDateKey(date = new Date()){
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2,'0');
+  const d = String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
 
-function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+function save(){ localStorage.setItem(KEY, JSON.stringify(data)); }
 
+/* Logging */
 function markClean(){
-  data[today()]={status:"clean"};
-  document.getElementById("msg").textContent="Clean day recorded.";
+  data[localDateKey()] = { status:"clean" };
+  document.getElementById("msg").textContent = "Clean day recorded.";
   save();
 }
+
 function showLevels(){
   document.getElementById("levels").classList.toggle("hidden");
 }
+
 function markJunk(level){
-  data[today()]={status:"junk",level};
+  data[localDateKey()] = { status:"junk", level };
   document.getElementById("levels").classList.add("hidden");
-  document.getElementById("msg").textContent=
+  document.getElementById("msg").textContent =
     `Junk (${level}) recorded.`;
   save();
 }
 
-/* Calendar logic */
+/* Calendar */
 function openCalendar(){
   document.getElementById("calendarScreen").classList.remove("hidden");
   renderCalendar();
@@ -132,36 +141,38 @@ function closeCalendar(){
 }
 
 function renderCalendar(){
-  const grid=document.getElementById("calendarGrid");
-  grid.innerHTML="";
-  const year=current.getFullYear();
-  const month=current.getMonth();
-  document.getElementById("monthYear").textContent=
+  const grid = document.getElementById("calendarGrid");
+  grid.innerHTML = "";
+  const year = current.getFullYear();
+  const month = current.getMonth();
+
+  document.getElementById("monthYear").textContent =
     current.toLocaleString("default",{month:"long",year:"numeric"});
 
-  const days=new Date(year,month+1,0).getDate();
-  for(let d=1;d<=days;d++){
-    const date=new Date(year,month,d).toISOString().slice(0,10);
-    const cell=document.createElement("div");
-    cell.className="day";
-    cell.textContent=d;
+  const days = new Date(year, month + 1, 0).getDate();
 
-    if(data[date]){
-      if(data[date].status==="clean")cell.classList.add("clean-day");
-      if(data[date].level==="low")cell.classList.add("low-day");
-      if(data[date].level==="medium")cell.classList.add("medium-day");
-      if(data[date].level==="high")cell.classList.add("high-day");
+  for(let d=1; d<=days; d++){
+    const dateKey = localDateKey(new Date(year, month, d));
+    const cell = document.createElement("div");
+    cell.className = "day";
+    cell.textContent = d;
+
+    if(data[dateKey]){
+      if(data[dateKey].status==="clean") cell.classList.add("clean-day");
+      if(data[dateKey].level==="low") cell.classList.add("low-day");
+      if(data[dateKey].level==="medium") cell.classList.add("medium-day");
+      if(data[dateKey].level==="high") cell.classList.add("high-day");
     }
     grid.appendChild(cell);
   }
 }
 
 /* Swipe */
-function startSwipe(e){touchX=e.changedTouches[0].screenX}
+function startSwipe(e){ touchX = e.changedTouches[0].screenX; }
 function endSwipe(e){
-  let dx=e.changedTouches[0].screenX-touchX;
-  if(dx>50){current.setMonth(current.getMonth()-1)}
-  if(dx<-50){current.setMonth(current.getMonth()+1)}
+  const dx = e.changedTouches[0].screenX - touchX;
+  if(dx > 50) current.setMonth(current.getMonth() - 1);
+  if(dx < -50) current.setMonth(current.getMonth() + 1);
   renderCalendar();
 }
 
