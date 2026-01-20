@@ -8,59 +8,62 @@
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
-
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#020617">
 
 <style>
 :root{
   --bg:#020617;--card:#0f172a;
-  --green:#16a34a;--red:#dc2626;--gold:#fbbf24;
+  --green:#16a34a;--yellow:#facc15;
+  --orange:#f97316;--red:#dc2626;--gold:#fbbf24;
 }
 *{box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
 body{
   margin:0;background:radial-gradient(circle at top,#0f172a,#020617);
-  color:#fff;display:flex;justify-content:center;align-items:center;min-height:100vh
+  color:#fff;min-height:100vh
 }
 .app{
-  width:380px;background:var(--card);
+  max-width:380px;margin:auto;
+  background:var(--card);
   border-radius:22px;padding:20px;
   border:1px solid #334155;
 }
 h1{text-align:center;color:var(--gold);margin:8px 0}
-.stats{text-align:center;margin-bottom:10px;font-size:13px}
 button{
-  width:100%;padding:14px;
-  border-radius:12px;border:none;
-  font-weight:800;margin-bottom:10px;cursor:pointer
+  width:100%;padding:14px;border-radius:12px;
+  border:none;font-weight:800;margin-bottom:10px;cursor:pointer
 }
 .clean{background:var(--green)}
 .junk{background:var(--red)}
 .secondary{
-  background:#020617;color:#94a3b8;
-  border:1px solid #334155
-}
-.msg{
-  min-height:50px;text-align:center;
-  font-style:italic;margin:10px 0
+  background:#020617;color:#94a3b8;border:1px solid #334155
 }
 .hidden{display:none}
-
-/* Junk choices */
-.levels button{margin-bottom:8px}
+.msg{text-align:center;font-style:italic;min-height:40px}
 
 /* Calendar */
-.calendar{
+.calendar-screen{
+  position:fixed;inset:0;background:var(--bg);
+  padding:20px;z-index:10
+}
+.cal-header{
+  display:flex;justify-content:space-between;
+  align-items:center;margin-bottom:10px
+}
+.cal-header h2{margin:0}
+.grid{
   display:grid;grid-template-columns:repeat(7,1fr);
-  gap:6px;margin-top:10px;font-size:11px
+  gap:6px;font-size:12px
 }
 .day{
-  padding:8px 0;text-align:center;
-  border-radius:6px;background:#020617;
+  text-align:center;padding:10px 0;
+  border-radius:8px;background:#020617;
   border:1px solid #334155
 }
-.day.clean{background:rgba(22,163,74,.7)}
-.day.junk{background:rgba(220,38,38,.7)}
+.clean-day{background:var(--green)}
+.low-day{background:var(--yellow);color:#000}
+.medium-day{background:var(--orange)}
+.high-day{background:var(--red)}
 </style>
 </head>
 
@@ -68,85 +71,99 @@ button{
 <div class="app">
   <h1>DISCIPLINE LEDGER</h1>
 
-  <div class="stats">
-    Daily check-in • Be honest
-  </div>
+  <button class="clean" onclick="markClean()">✔ I STAYED CLEAN TODAY</button>
+  <button class="junk" onclick="showLevels()">✖ I ATE JUNK TODAY</button>
 
-  <button class="clean" id="cleanBtn">✔ I STAYED CLEAN TODAY</button>
-  <button class="junk" id="junkBtn">✖ I ATE JUNK TODAY</button>
-
-  <div id="levels" class="levels hidden">
-    <button class="junk" onclick="logJunk('low')">Low junk (skip 1 meal)</button>
-    <button class="junk" onclick="logJunk('medium')">Medium junk (skip 2 meals)</button>
-    <button class="junk" onclick="logJunk('high')">High junk (skip 3 meals + exercise)</button>
+  <div id="levels" class="hidden">
+    <button class="junk" onclick="markJunk('low')">Low junk (skip 1 meal)</button>
+    <button class="junk" onclick="markJunk('medium')">Medium junk (skip 2 meals)</button>
+    <button class="junk" onclick="markJunk('high')">High junk (skip 3 meals + exercise)</button>
   </div>
 
   <div class="msg" id="msg">No report yet today.</div>
 
-  <button class="secondary" onclick="toggleCalendar()">📅 View Calendar</button>
+  <button class="secondary" onclick="openCalendar()">📅 Calendar</button>
+</div>
 
-  <div id="calendar" class="calendar hidden"></div>
+<!-- Calendar Screen -->
+<div id="calendarScreen" class="calendar-screen hidden"
+     ontouchstart="startSwipe(event)" ontouchend="endSwipe(event)">
+  <div class="cal-header">
+    <button class="secondary" onclick="closeCalendar()">← Back</button>
+    <h2 id="monthYear"></h2>
+    <span></span>
+  </div>
+  <div class="grid" id="calendarGrid"></div>
 </div>
 
 <script>
-const KEY="disciplineLedger";
-let data = JSON.parse(localStorage.getItem(KEY)) || {};
+const KEY="disciplineData";
+let data=JSON.parse(localStorage.getItem(KEY))||{};
+let current=new Date();
+let touchX=0;
 
-const today = new Date().toISOString().slice(0,10);
+const today=()=>new Date().toISOString().slice(0,10);
 
-function save(){
-  localStorage.setItem(KEY,JSON.stringify(data));
+function save(){localStorage.setItem(KEY,JSON.stringify(data))}
+
+function markClean(){
+  data[today()]={status:"clean"};
+  document.getElementById("msg").textContent="Clean day recorded.";
+  save();
 }
-
-function cleanToday(){
-  data[today]={status:"clean"};
-  document.getElementById("msg").textContent="Good. Discipline recorded.";
-  save();renderCalendar();
+function showLevels(){
+  document.getElementById("levels").classList.toggle("hidden");
 }
-
-function showJunkLevels(){
-  document.getElementById("levels").classList.remove("hidden");
-}
-
-function logJunk(level){
-  data[today]={status:"junk",level};
-  const consequences={
-    low:"Skip 1 meal tomorrow.",
-    medium:"Skip 2 meals tomorrow.",
-    high:"Skip 3 meals + extra exercise."
-  };
-  document.getElementById("msg").textContent=
-    `Junk recorded. Consequence: ${consequences[level]}`;
+function markJunk(level){
+  data[today()]={status:"junk",level};
   document.getElementById("levels").classList.add("hidden");
-  save();renderCalendar();
+  document.getElementById("msg").textContent=
+    `Junk (${level}) recorded.`;
+  save();
 }
 
-function toggleCalendar(){
-  document.getElementById("calendar").classList.toggle("hidden");
+/* Calendar logic */
+function openCalendar(){
+  document.getElementById("calendarScreen").classList.remove("hidden");
   renderCalendar();
+}
+function closeCalendar(){
+  document.getElementById("calendarScreen").classList.add("hidden");
 }
 
 function renderCalendar(){
-  const cal=document.getElementById("calendar");
-  cal.innerHTML="";
-  const now=new Date();
-  const year=now.getFullYear();
-  const month=now.getMonth();
-  const days=new Date(year,month+1,0).getDate();
+  const grid=document.getElementById("calendarGrid");
+  grid.innerHTML="";
+  const year=current.getFullYear();
+  const month=current.getMonth();
+  document.getElementById("monthYear").textContent=
+    current.toLocaleString("default",{month:"long",year:"numeric"});
 
+  const days=new Date(year,month+1,0).getDate();
   for(let d=1;d<=days;d++){
     const date=new Date(year,month,d).toISOString().slice(0,10);
-    const div=document.createElement("div");
-    div.className="day";
-    div.textContent=d;
-    if(data[date]?.status==="clean")div.classList.add("clean");
-    if(data[date]?.status==="junk")div.classList.add("junk");
-    cal.appendChild(div);
+    const cell=document.createElement("div");
+    cell.className="day";
+    cell.textContent=d;
+
+    if(data[date]){
+      if(data[date].status==="clean")cell.classList.add("clean-day");
+      if(data[date].level==="low")cell.classList.add("low-day");
+      if(data[date].level==="medium")cell.classList.add("medium-day");
+      if(data[date].level==="high")cell.classList.add("high-day");
+    }
+    grid.appendChild(cell);
   }
 }
 
-document.getElementById("cleanBtn").onclick=cleanToday;
-document.getElementById("junkBtn").onclick=showJunkLevels;
+/* Swipe */
+function startSwipe(e){touchX=e.changedTouches[0].screenX}
+function endSwipe(e){
+  let dx=e.changedTouches[0].screenX-touchX;
+  if(dx>50){current.setMonth(current.getMonth()-1)}
+  if(dx<-50){current.setMonth(current.getMonth()+1)}
+  renderCalendar();
+}
 
 renderCalendar();
 </script>
