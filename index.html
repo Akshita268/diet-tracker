@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Discipline Quest</title>
+<title>Discipline Arena</title>
 
 <link rel="manifest" href="manifest.json">
 
-<!-- iOS ICON FIX -->
+<!-- iOS ICON SUPPORT -->
 <link rel="apple-touch-icon" href="icon-192.png">
 <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
 
@@ -17,8 +17,8 @@
 
 <style>
 :root{
-  --bg:#020617;--card:#1e293b;
-  --danger:#dc2626;--success:#16a34a;--gold:#fbbf24;
+  --bg:#020617;--card:#0f172a;
+  --red:#dc2626;--green:#16a34a;--gold:#fbbf24;
 }
 *{box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
 body{
@@ -28,120 +28,138 @@ body{
 .app{
   width:380px;background:var(--card);border-radius:22px;
   padding:22px;border:1px solid #334155;
-  box-shadow:0 0 40px rgba(0,0,0,.6);position:relative;overflow:hidden
+  box-shadow:0 0 50px rgba(0,0,0,.6);
+  position:relative;overflow:hidden
 }
-.app.good{box-shadow:0 0 40px rgba(22,163,74,.6)}
-.app.bad{animation:shake .3s}
-
-@keyframes shake{
-  0%{transform:translateX(0)}
-  25%{transform:translateX(-6px)}
-  50%{transform:translateX(6px)}
-  75%{transform:translateX(-6px)}
-  100%{transform:translateX(0)}
-}
-
+.app.boss{box-shadow:0 0 50px rgba(251,191,36,.7)}
 .badge{
-  background:rgba(220,38,38,.15);color:var(--danger);
-  padding:6px 14px;border-radius:999px;font-size:11px;
-  font-weight:700;display:inline-block;margin-bottom:10px
+  text-align:center;font-size:11px;
+  font-weight:800;letter-spacing:1px;
+  padding:6px;border-radius:999px;
+  background:#020617;border:1px solid #334155;
+  margin-bottom:8px
 }
-h1{text-align:center;margin:8px 0;color:var(--gold);letter-spacing:1px}
+h1{text-align:center;margin:8px 0;color:var(--gold)}
 
-.bar{background:#0f172a;border-radius:12px;overflow:hidden;margin:10px 0}
-.bar-fill{height:14px;background:linear-gradient(90deg,var(--success),#22c55e);transition:.4s}
+.stats{
+  display:flex;justify-content:space-between;
+  font-size:12px;margin-bottom:8px
+}
+.bar{background:#020617;border-radius:10px;overflow:hidden;margin:8px 0}
+.fill{height:12px;transition:.4s}
 
-.stats{display:flex;justify-content:space-between;font-size:12px;color:#cbd5f5}
+.health{background:linear-gradient(90deg,var(--green),#22c55e)}
+.pressure{background:linear-gradient(90deg,var(--red),#991b1b)}
 
-.timer{text-align:center;margin:14px 0;color:var(--gold);font-size:13px}
+.state{
+  text-align:center;font-weight:800;
+  margin:12px 0;font-size:13px
+}
 
 button{
-  width:100%;padding:16px;border-radius:14px;border:none;
-  font-weight:800;letter-spacing:.5px;cursor:pointer
+  width:100%;padding:15px;
+  border-radius:14px;border:none;
+  font-weight:800;cursor:pointer
 }
-.clean{background:var(--success);color:#fff;margin-bottom:10px}
-.junk{background:var(--danger);color:#fff}
+.clean{background:var(--green);margin-bottom:10px}
+.junk{background:var(--red)}
 button:disabled{opacity:.4}
 
-.msg{min-height:48px;text-align:center;font-style:italic;color:var(--danger);margin-top:12px;font-size:13px}
+.msg{
+  min-height:44px;text-align:center;
+  font-style:italic;color:var(--red);
+  margin-top:10px;font-size:13px
+}
+.quest{
+  margin-top:14px;padding:10px;
+  background:#020617;border-radius:10px;
+  font-size:12px;border:1px dashed #334155
+}
 </style>
 </head>
 
 <body>
 <div class="app" id="app">
-  <div class="badge">STRICT MODE</div>
-  <h1>DISCIPLINE QUEST</h1>
+  <div class="badge" id="rank">RANK: WEAKLING</div>
+  <h1>DISCIPLINE ARENA</h1>
 
   <div class="stats">
-    <div>Score: <b id="score">1000</b></div>
-    <div>Streak: <b id="streak">0</b></div>
+    <div>Score <b id="score">1000</b></div>
+    <div>Streak <b id="streak">0</b></div>
   </div>
 
-  <div class="bar"><div class="bar-fill" id="healthBar"></div></div>
+  <div class="bar"><div class="fill health" id="health"></div></div>
+  <div class="bar"><div class="fill pressure" id="pressure"></div></div>
 
-  <div class="timer" id="timer">Waiting for check-in…</div>
+  <div class="state" id="stateText">WAITING…</div>
 
-  <button class="clean" id="cleanBtn">✔ I STAYED CLEAN</button>
-  <button class="junk" id="junkBtn">✖ I ATE JUNK</button>
+  <button class="clean" id="cleanBtn">✔ STAYED CLEAN</button>
+  <button class="junk" id="junkBtn">✖ ATE JUNK</button>
 
   <div class="msg" id="msg"></div>
+
+  <div class="quest" id="quest">
+    🎯 Quest: Survive 3 clean hours
+  </div>
 </div>
 
 <script>
-const ONE_HOUR=3600000,KEY="disciplineData";
-const SCOLDS=[
- "That was weakness, not hunger.",
- "You traded health for a moment.",
- "Discipline lost this round.",
- "You knew better."
-];
+const HOUR=3600000,KEY="arena";
+const RANKS=["WEAKLING","DISCIPLINED","IRON WILL","RELENTLESS"];
 
 let s=JSON.parse(localStorage.getItem(KEY))||{
- score:1000,streak:0,clean:0,last:0,notified:false
+ score:1000,streak:0,clean:0,pressure:0,last:0
 };
 
-const $=id=>document.getElementById(id);
+const $=i=>document.getElementById(i);
 const app=$("app");
 
-function save(){localStorage.setItem(KEY,JSON.stringify(s))}
+function rank(){
+ if(s.streak>=12)return RANKS[3];
+ if(s.streak>=6)return RANKS[2];
+ if(s.streak>=3)return RANKS[1];
+ return RANKS[0];
+}
 
 function ui(){
  $("score").textContent=s.score;
  $("streak").textContent=s.streak;
- $("healthBar").style.width=Math.min(100,s.score/10)+"%";
+ $("rank").textContent="RANK: "+rank();
+ $("health").style.width=Math.min(100,s.score/10)+"%";
+ $("pressure").style.width=Math.min(100,s.pressure*10)+"%";
 
- const now=Date.now(),d=now-s.last;
- if(!s.last||d>=ONE_HOUR){
-   $("cleanBtn").disabled=false;
-   $("junkBtn").disabled=false;
-   $("timer").textContent="⏱ CHECK-IN REQUIRED";
- }else{
-   $("cleanBtn").disabled=true;
-   $("junkBtn").disabled=true;
-   let r=ONE_HOUR-d;
-   $("timer").textContent=`Next check-in in ${Math.floor(r/60000)}m ${Math.floor(r%60000/1000)}s`;
- }
- save();
+ const d=Date.now()-s.last;
+ const boss=s.clean>0 && s.clean%6===0;
+
+ app.classList.toggle("boss",boss);
+ $("stateText").textContent=boss?"⚔️ BOSS HOUR":"⏱ CHECK-IN";
+
+ $("cleanBtn").disabled=d<HOUR;
+ $("junkBtn").disabled=d<HOUR;
+
+ localStorage.setItem(KEY,JSON.stringify(s));
 }
 
 $("cleanBtn").onclick=()=>{
  s.last=Date.now();s.score+=10;s.clean++;
- app.classList.add("good");
- setTimeout(()=>app.classList.remove("good"),300);
- $("msg").textContent="Good. Discipline held.";
- if(s.clean===6){s.streak++;s.clean=0}
+ s.pressure=Math.max(0,s.pressure-1);
+ $("msg").textContent="You resisted.";
+ if(s.clean%6===0){s.streak++;s.score+=100}
  ui();
 };
 
 $("junkBtn").onclick=()=>{
- s.last=Date.now();s.score-=200;s.streak=0;s.clean=0;
- $("msg").textContent=SCOLDS[Math.random()*SCOLDS.length|0];
- app.classList.add("bad");
- setTimeout(()=>app.classList.remove("bad"),300);
+ s.last=Date.now();s.score-=200;s.clean=0;
+ s.streak=0;s.pressure+=2;
+ $("msg").textContent="You folded under pressure.";
  ui();
 };
 
-setInterval(ui,1000);
+setInterval(()=>{
+ if(Date.now()-s.last>HOUR)s.pressure++;
+ ui();
+},1000);
+
 ui();
 </script>
 </body>
